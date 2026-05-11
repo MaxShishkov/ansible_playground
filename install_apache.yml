@@ -3,16 +3,20 @@
   become: true
 
   tasks:
-    - name: Update repo index
+    - name: Install Apache and PHP modules
       apt:
+        name:
+          - apache2
+          - libapache2-mod-php
+        state: latest
         update_cache: yes
+      when: ansible_os_family in ["Debian", "Ubuntu"]
 
-    - name: Install Apache
-      apt:
-        name: apache2
+    - name: Install apache and PHP for CentOS and RedHat
+      dnf:
+        name:
+          - httpd
+          - php
         state: latest
-
-    - name: Add PHP support for apache
-      apt:
-        name: libapache2-mod-php
-        state: latest
+        update_cache: yes
+      when: ansible_os_family in ["RedHat", "CentOS"]
