@@ -3,88 +3,41 @@
   become: true
 
   pre_tasks:
-    - name: Install update (CentOS)
+    - name: Update repo cache (CentOS)
       tags: always
       dnf:
-        update_onlyL: yes
         update_cache: yes
+      changed_when: false
       when: ansible_os_family in ["RedHat", "CentOS"]
 
-    - name: install update (Ubuntu)
+    - name: Update repo cache (Ubuntu)
       tags: always
       apt:
-        upgrade: dist
         update_cache: yes
+      changed_when: false
       when: ansible_os_family in ["Debian", "Ubuntu"]
+
+- hosts: all
+  become: true
+  roles:
+    - base
 
 - hosts: workstations
   become: true
-  tasks:
-    - name: Install unzip
-      package:
-        name: unzip
-
-    - name: Install terraform
-      unarchive:
-        src: https://releases.hashicorp.com/terraform/1.9.5/terraform_1.9.5_linux_amd64.zip
-        dest: /usr/local/bin/
-        remote_src: yes
-        mode: "0755"
-        owner: root
-        group: root
+  roles:
+    - workstations
 
 - hosts: web_servers
   become: true
-  tasks:
-    - name: Install Apache and PHP modules
-      tags: apache,apache2,ubuntu,debian
-      apt:
-        name:
-          - apache2
-          - libapache2-mod-php
-        state: latest
-      when: ansible_os_family in ["Debian", "Ubuntu"]
-
-    - name: Install apache and PHP for CentOS and RedHat
-      tags: apache,centos,httpd
-      dnf:
-        name:
-          - httpd
-          - php
-        state: latest
-      when: ansible_os_family in ["RedHat", "CentOS"]
-
-    - name: Copy default html file for site
-      tags: apache,apache2,httpd
-      copy:
-        src: files/default_site.html
-        dest: /var/www/html/index.html
-        owner: root
-        group: root
-        mode: "0644"
+  roles:
+    - web_servers
 
 - hosts: db_servers
   become: true
-  tasks:
-    - name: Install mariadb package
-      tags: centos,db,mariadb
-      dnf:
-        name: mariadb
-        state: latest
-      when: ansible_os_family in ["RedHat", "CentOS"]
-
-    - name: Install mariadb package Ubuntu
-      tags: ubuntu,db,mariadb
-      apt:
-        name: mariadb-server
-        state: latest
-      when: ansible_os_family in ["Debian", "Ubuntu"]
+  roles:
+    - db_servers
 
 - hosts: file_servers
   become: true
-  tasks:
-    - name: Install samba package
-      tags: samba
-      package:
-        name: samba
-        state: latest
+  roles:
+    - file_servers
